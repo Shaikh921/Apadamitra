@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   cupertino_icons: ^1.0.8
   google_fonts: ^6.1.0
   firebase_core: '>=2.21.1'
@@ -22,6 +24,7 @@ dependencies:
   intl: 0.20.2
   http: ^1.2.1
   flutter_local_notifications: ^19.0.0
+  google_generative_ai: ^0.4.6
   url_launcher: ^6.0.0
   fl_chart: 0.68.0
 

@@ -58,7 +58,11 @@ class AuthService {
       // Try to load the user profile
       try {
         await _loadCurrentUser(response.user!.id);
+        if (_currentUser == null) {
+          throw Exception('User profile not found');
+        }
       } catch (e) {
+        print('Profile not found, creating manually: $e');
         // If trigger didn't work, manually create the profile
         final now = DateTime.now();
         final userData = {
@@ -73,8 +77,18 @@ class AuthService {
           'updated_at': now.toIso8601String(),
         };
 
-        await SupabaseService.insert('users', userData);
-        await _loadCurrentUser(response.user!.id);
+        try {
+          await SupabaseService.insert('users', userData);
+          await Future.delayed(const Duration(milliseconds: 300));
+          await _loadCurrentUser(response.user!.id);
+        } catch (insertError) {
+          print('Error inserting user: $insertError');
+          throw Exception('Failed to create user profile: $insertError');
+        }
+      }
+
+      if (_currentUser == null) {
+        throw Exception('Failed to load user profile after creation');
       }
 
       return _currentUser!;

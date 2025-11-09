@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:riverwise/openai/openai_config.dart';
+import 'package:riverwise/gemini/gemini_config.dart';
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});
@@ -18,10 +18,27 @@ class _ChatMessage {
 class _ChatbotScreenState extends State<ChatbotScreen> with TickerProviderStateMixin {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
-  final _client = OpenAIClient();
+  late final GeminiClient _client;
   bool _isLoading = false;
   String _language = 'English';
   final List<_ChatMessage> _messages = [];
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    try {
+      _client = GeminiClient();
+      // Add welcome message
+      _messages.add(_ChatMessage(
+        role: 'assistant',
+        content: 'Hello! 👋 I\'m your flood safety assistant. I can help you with:\n\n• Flood preparedness tips\n• Emergency procedures\n• Understanding alerts\n• Dam safety information\n• Evacuation guidance\n\nHow can I help you stay safe today?',
+        timestamp: DateTime.now(),
+      ));
+    } catch (e) {
+      _errorMessage = e.toString();
+    }
+  }
 
   final List<String> _languages = const [
     'English',
@@ -95,18 +112,89 @@ class _ChatbotScreenState extends State<ChatbotScreen> with TickerProviderStateM
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
+    // Show error screen if Gemini is not configured
+    if (_errorMessage != null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Safety Assistant'),
+          backgroundColor: cs.primary,
+          foregroundColor: Colors.white,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: cs.error),
+                const SizedBox(height: 16),
+                Text(
+                  'Configuration Required',
+                  style: theme.textTheme.titleLarge?.copyWith(color: cs.error),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Please configure your Gemini API key in:\nlib/gemini/gemini_config.dart',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.arrow_back),
+                  label: const Text('Go Back'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(Icons.support_agent, color: cs.primary),
-            const SizedBox(width: 8),
-            Text('Safety Assistant', style: theme.textTheme.titleLarge),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.support_agent, color: Colors.white, size: 24),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Safety Assistant', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text('Powered by Gemini AI', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w300)),
+                ],
+              ),
+            ),
           ],
         ),
+        backgroundColor: cs.primary,
+        foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'New Conversation',
+            onPressed: () {
+              setState(() {
+                _client.resetChat();
+                _messages.clear();
+                _messages.add(_ChatMessage(
+                  role: 'assistant',
+                  content: 'Hello! 👋 I\'m your flood safety assistant. How can I help you stay safe today?',
+                  timestamp: DateTime.now(),
+                ));
+              });
+            },
+          ),
           Padding(
-            padding: const EdgeInsets.only(right: 12.0),
+            padding: const EdgeInsets.only(right: 8.0),
             child: _LanguageDropdown(
               value: _language,
               items: _languages,
@@ -123,23 +211,25 @@ class _ChatbotScreenState extends State<ChatbotScreen> with TickerProviderStateM
           _HeaderBanner(),
           const SizedBox(height: 8),
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              itemCount: _messages.length + (_isLoading ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (_isLoading && index == _messages.length) {
-                  return _TypingBubble(color: cs.primaryContainer, onColor: cs.onPrimaryContainer);
-                }
-                final m = _messages[index];
-                final isUser = m.role == 'user';
-                return _MessageBubble(
-                  isUser: isUser,
-                  text: m.content,
-                  timestamp: m.timestamp,
-                );
-              },
-            ),
+            child: _messages.isEmpty
+                ? _EmptyState()
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    itemCount: _messages.length + (_isLoading ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (_isLoading && index == _messages.length) {
+                        return _TypingBubble(color: cs.primaryContainer, onColor: cs.onPrimaryContainer);
+                      }
+                      final m = _messages[index];
+                      final isUser = m.role == 'user';
+                      return _MessageBubble(
+                        isUser: isUser,
+                        text: m.content,
+                        timestamp: m.timestamp,
+                      );
+                    },
+                  ),
           ),
           SafeArea(
             top: false,
@@ -158,6 +248,43 @@ class _ChatbotScreenState extends State<ChatbotScreen> with TickerProviderStateM
   }
 }
 
+class _EmptyState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: cs.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.chat_bubble_outline, size: 64, color: cs.primary),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Start a Conversation',
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Ask me anything about flood safety, preparedness, or emergency procedures.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurface.withValues(alpha: 0.7)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _HeaderBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -168,18 +295,48 @@ class _HeaderBanner extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(colors: [cs.primary.withValues(alpha: 0.12), cs.primaryContainer.withValues(alpha: 0.3)]),
+          gradient: LinearGradient(
+            colors: [
+              cs.primary.withValues(alpha: 0.15),
+              cs.primaryContainer.withValues(alpha: 0.4),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: cs.primary.withValues(alpha: 0.2)),
         ),
         padding: const EdgeInsets.all(16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.shield_moon, color: cs.primary),
-            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: cs.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.shield_moon, color: cs.primary, size: 24),
+            ),
+            const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                'Get quick, actionable guidance for flood preparedness and emergencies. Stay safe! 🛟',
-                style: theme.textTheme.bodyMedium,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'AI-Powered Safety Guidance',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: cs.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Get instant, actionable advice for flood emergencies and preparedness. Available in multiple languages. 🛟',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: cs.onSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -198,19 +355,19 @@ class _LanguageDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: cs.primaryContainer),
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
-          icon: Icon(Icons.keyboard_arrow_down, color: cs.primary),
-          style: theme.textTheme.labelLarge,
+          icon: const Icon(Icons.language, color: Colors.white, size: 18),
+          style: theme.textTheme.labelMedium?.copyWith(color: Colors.white),
+          dropdownColor: theme.colorScheme.surface,
           onChanged: onChanged,
           items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
         ),
@@ -229,43 +386,111 @@ class _MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final bg = isUser ? cs.primary : cs.primaryContainer;
-    final fg = isUser ? cs.onPrimary : cs.onPrimaryContainer;
+    final bg = isUser ? cs.primary : cs.surfaceContainerHighest;
+    final fg = isUser ? cs.onPrimary : cs.onSurface;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           if (!isUser) ...[
-            CircleAvatar(radius: 14, backgroundColor: cs.primaryContainer, child: Icon(Icons.safety_check, size: 16, color: cs.onPrimaryContainer)),
-            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [cs.primary, cs.primary.withValues(alpha: 0.7)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: cs.primary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.auto_awesome, size: 18, color: Colors.white),
+            ),
+            const SizedBox(width: 10),
           ],
           Flexible(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOut,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: bg,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(isUser ? 16 : 4),
-                  bottomRight: Radius.circular(isUser ? 4 : 16),
+            child: Column(
+              crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOut,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: bg,
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(20),
+                      topRight: const Radius.circular(20),
+                      bottomLeft: Radius.circular(isUser ? 20 : 4),
+                      bottomRight: Radius.circular(isUser ? 4 : 20),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    text,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: fg,
+                      height: 1.5,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
-              ),
-              child: Text(text, style: theme.textTheme.bodyMedium?.copyWith(color: fg, height: 1.5)),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    _formatTime(timestamp),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: cs.onSurface.withValues(alpha: 0.5),
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           if (isUser) ...[
-            const SizedBox(width: 8),
-            CircleAvatar(radius: 14, backgroundColor: cs.primary, child: Icon(Icons.person, size: 16, color: cs.onPrimary)),
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: cs.primary,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: cs.primary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(Icons.person, size: 18, color: cs.onPrimary),
+            ),
           ],
         ],
       ),
     );
+  }
+
+  String _formatTime(DateTime time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 }
 
@@ -332,42 +557,80 @@ class _Composer extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              color: cs.surface,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: cs.primaryContainer),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
-              controller: controller,
-              minLines: 1,
-              maxLines: 5,
-              textInputAction: TextInputAction.newline,
-              decoration: const InputDecoration(
-                hintText: 'Ask about flood safety, preparedness, or emergencies…',
-                border: InputBorder.none,
+    return Container(
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: cs.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: cs.outline.withValues(alpha: 0.2)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              child: TextField(
+                controller: controller,
+                minLines: 1,
+                maxLines: 5,
+                textInputAction: TextInputAction.newline,
+                style: theme.textTheme.bodyMedium,
+                decoration: InputDecoration(
+                  hintText: 'Ask about flood safety...',
+                  hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                onSubmitted: (_) => isLoading ? null : onSend(),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 10),
-        GestureDetector(
-          onTap: isLoading ? null : onSend,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: isLoading ? cs.primary.withValues(alpha: 0.5) : cs.primary,
-              borderRadius: BorderRadius.circular(24),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: isLoading ? null : onSend,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                gradient: isLoading
+                    ? null
+                    : LinearGradient(
+                        colors: [cs.primary, cs.primary.withValues(alpha: 0.8)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                color: isLoading ? cs.primary.withValues(alpha: 0.5) : null,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: isLoading
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: cs.primary.withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+              ),
+              child: Icon(
+                isLoading ? Icons.hourglass_empty : Icons.send_rounded,
+                color: cs.onPrimary,
+                size: 22,
+              ),
             ),
-            child: Icon(Icons.send_rounded, color: cs.onPrimary),
-          ),
-        )
-      ],
+          )
+        ],
+      ),
     );
   }
 }

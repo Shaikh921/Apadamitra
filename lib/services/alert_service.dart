@@ -79,4 +79,18 @@ class AlertService {
       throw Exception('Failed to deactivate alert: ${e.toString()}');
     }
   }
+
+  Future<List<AlertModel>> getAll() async {
+    try {
+      final data = await SupabaseService.select(
+        'alerts',
+        orderBy: 'created_at',
+        ascending: false,
+      );
+      return data.map((json) => AlertModel.fromJson(json)).toList();
+    } catch (e) {
+      print('Error loading all alerts: $e');
+      throw Exception('Failed to load alerts: ${e.toString()}');
+    }
+  }
 }

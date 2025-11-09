@@ -11,13 +11,14 @@ A comprehensive multi-platform flood monitoring and safety system that integrate
 - 🌓 **Dark Mode** - Eye-friendly dark theme support
 - 📍 **Location Services** - Location-based alerts and monitoring
 - 👤 **User Authentication** - Secure login with Supabase
-- 💬 **AI Chatbot Assistant** - Get instant help and information
+- 💬 **AI Chatbot Assistant** - Gemini-powered flood safety guidance in 9 languages
 
 ## Tech Stack
 
 - **Frontend**: Flutter (Dart)
 - **Backend**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
+- **AI Assistant**: Google Gemini AI (gemini-1.5-flash)
 - **Maps**: Google Maps Flutter
 - **Notifications**: Firebase Cloud Messaging
 - **State Management**: Provider pattern

@@ -7,17 +7,21 @@ class DamService {
   DamService._internal();
 
   Future<void> initialize() async {
-    // No initialization needed for Supabase
+    // No initialization needed
   }
 
   Future<List<DamModel>> getAll() async {
     try {
       final data = await SupabaseService.select('dams', orderBy: 'name');
+      print('Loaded ${data.length} dams from database');
       return data.map((json) => DamModel.fromJson(json)).toList();
     } catch (e) {
+      print('Error loading dams: $e');
       throw Exception('Failed to load dams: ${e.toString()}');
     }
   }
+
+
 
   Future<List<String>> getStates() async {
     try {
@@ -72,6 +76,25 @@ class DamService {
       return DamModel.fromJson(result.first);
     } catch (e) {
       throw Exception('Failed to update dam: ${e.toString()}');
+    }
+  }
+
+  Future<void> insertDam(Map<String, dynamic> damData) async {
+    try {
+      await SupabaseService.insert('dams', damData);
+      print('Dam inserted successfully');
+    } catch (e) {
+      print('Error inserting dam: $e');
+      throw Exception('Failed to insert dam: ${e.toString()}');
+    }
+  }
+
+  Future<void> deleteDam(String id) async {
+    try {
+      await SupabaseService.delete('dams', filters: {'id': id});
+      print('Dam deleted successfully');
+    } catch (e) {
+      throw Exception('Failed to delete dam: ${e.toString()}');
     }
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:riverwise/services/auth_service.dart';
 import 'package:riverwise/screens/auth_screen.dart';
+import 'package:riverwise/screens/admin/admin_dashboard_screen.dart';
 import 'package:riverwise/main.dart';
+import 'package:riverwise/providers/language_provider.dart';
 import 'package:geolocator/geolocator.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -126,13 +128,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 24),
+            // Admin Panel Button
+            if (user?.role.name == 'admin' || user?.role.name == 'operator')
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 2,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.admin_panel_settings, size: 24),
+                        const SizedBox(width: 12),
+                        Text(
+                          user?.role.name == 'admin' ? 'Admin Panel' : 'Operator Panel',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             _buildSection(
               theme,
               isDark,
               'Settings',
               [
                 _buildDarkModeToggle(theme),
-                _buildSettingTile(theme, Icons.language, 'Language', 'English', () {}),
+                _buildLanguageSelector(theme),
                 _buildSettingTile(theme, Icons.notifications_outlined, 'Notifications', 'Enabled', () {}),
                 _buildSettingTile(theme, Icons.location_on_outlined, 'Location', _locationStatus, _requestLocationPermission),
               ],
@@ -200,7 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildDarkModeToggle(ThemeData theme) {
-    final themeProvider = ThemeProviderScope.of(context);
+    final themeProvider = MultiProviderScope.themeOf(context);
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
     
     return Padding(
@@ -219,6 +255,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildLanguageSelector(ThemeData theme) {
+    final languageProvider = MultiProviderScope.languageOf(context);
+    final currentLanguage = languageProvider.locale.languageCode;
+    
+    return InkWell(
+      onTap: () => _showLanguageDialog(languageProvider),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Row(
+          children: [
+            Icon(Icons.language, color: theme.colorScheme.primary, size: 24),
+            const SizedBox(width: 16),
+            Expanded(child: Text('Language', style: theme.textTheme.bodyLarge)),
+            Text(
+              languageProvider.getLanguageName(currentLanguage),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.chevron_right, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageDialog(LanguageProvider languageProvider) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final theme = Theme.of(context);
+        return AlertDialog(
+          title: const Text('Select Language'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: languageProvider.supportedLanguages.map((lang) {
+              final isSelected = languageProvider.locale.languageCode == lang['code'];
+              return ListTile(
+                title: Text(lang['name']!),
+                trailing: isSelected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                onTap: () {
+                  languageProvider.setLanguage(lang['code']!);
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
     );
   }
 
