@@ -93,6 +93,7 @@ app.*.map.json
 # Sensitive files - DO NOT COMMIT
 # Uncomment if you want to hide Supabase credentials
 # lib/supabase/supabase_config.dart
+lib/gemini/gemini_config.dart
 .env
 *.env
 key.properties
