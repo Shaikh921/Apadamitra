@@ -1,0 +1,169 @@
+/// Website Integration Configuration
+/// 
+/// SETUP INSTRUCTIONS:
+/// 1. Copy this file and rename it to 'website_config.dart'
+/// 2. Replace the placeholder values with your actual website details
+/// 3. Add 'lib/config/website_config.dart' to .gitignore for security
+/// 
+/// This file contains sensitive information about your website backend.
+/// Never commit the actual configuration to version control!
+
+class WebsiteConfig {
+  /// Your website's base URL
+  static const String baseUrl = 'https://your-website.com';
+  
+  /// API base URL (usually baseUrl + '/api')
+  static const String apiBaseUrl = 'https://your-website.com/api';
+  
+  /// Website name for display purposes
+  static const String websiteName = 'Your Website Name';
+  
+  /// API endpoints mapping
+  static const Map<String, String> endpoints = {
+    // Authentication endpoints
+    'login': '/auth/login',
+    'register': '/auth/register',
+    'logout': '/auth/logout',
+    'verify': '/auth/verify',
+    'refresh': '/auth/refresh',
+    
+    // User endpoints
+    'profile': '/users/profile',
+    'checkUser': '/users/check',
+    'updateProfile': '/users/profile',
+    'userLocations': '/users/locations',
+    'shareLocation': '/users/location',
+    
+    // Data endpoints
+    'dams': '/dams',
+    'alerts': '/alerts',
+    'notifications': '/notifications',
+    'reports': '/reports',
+    
+    // Health check
+    'health': '/health',
+    'status': '/status',
+  };
+  
+  /// API headers
+  static const Map<String, String> defaultHeaders = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'User-Agent': 'Apadamitra-Mobile-App/1.0',
+  };
+  
+  /// Request timeout settings
+  static const Duration requestTimeout = Duration(seconds: 10);
+  static const Duration healthCheckTimeout = Duration(seconds: 5);
+  
+  /// Health check interval (how often to check if website is available)
+  static const Duration healthCheckInterval = Duration(minutes: 5);
+  
+  /// Location sharing settings
+  static const Duration locationShareInterval = Duration(minutes: 5);
+  static const bool enableAutoLocationShare = true;
+  
+  /// Data sync settings
+  static const Duration dataSyncInterval = Duration(minutes: 10);
+  static const bool enableAutoDataSync = true;
+  
+  /// Authentication settings
+  static const bool enableSSO = true;
+  static const bool enableAutoLogin = true;
+  
+  /// Fallback settings
+  static const bool enableFallbackToSupabase = true;
+  static const int maxRetryAttempts = 3;
+  static const Duration retryDelay = Duration(seconds: 2);
+  
+  /// Debug settings
+  static const bool enableDebugLogs = true;
+  static const bool enableNetworkLogs = false;
+  
+  /// Feature flags
+  static const Map<String, bool> features = {
+    'location_sharing': true,
+    'data_sync': true,
+    'sso_login': true,
+    'emergency_alerts': true,
+    'real_time_updates': true,
+    'offline_mode': true,
+  };
+  
+  /// Get full API URL for an endpoint
+  static String getApiUrl(String endpoint) {
+    final endpointPath = endpoints[endpoint] ?? endpoint;
+    return '$apiBaseUrl$endpointPath';
+  }
+  
+  /// Check if a feature is enabled
+  static bool isFeatureEnabled(String feature) {
+    return features[feature] ?? false;
+  }
+  
+  /// Get request headers with optional auth token
+  static Map<String, String> getHeaders({String? authToken}) {
+    final headers = Map<String, String>.from(defaultHeaders);
+    if (authToken != null && authToken.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $authToken';
+    }
+    return headers;
+  }
+}
+
+/// Website API Response Models
+class WebsiteApiResponse {
+  final bool success;
+  final String? message;
+  final dynamic data;
+  final String? error;
+  
+  WebsiteApiResponse({
+    required this.success,
+    this.message,
+    this.data,
+    this.error,
+  });
+  
+  factory WebsiteApiResponse.fromJson(Map<String, dynamic> json) {
+    return WebsiteApiResponse(
+      success: json['success'] ?? false,
+      message: json['message'],
+      data: json['data'],
+      error: json['error'],
+    );
+  }
+}
+
+/// Website User Model
+class WebsiteUser {
+  final String id;
+  final String email;
+  final String name;
+  final String? phone;
+  final String role;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  
+  WebsiteUser({
+    required this.id,
+    required this.email,
+    required this.name,
+    this.phone,
+    required this.role,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  
+  factory WebsiteUser.fromJson(Map<String, dynamic> json) {
+    return WebsiteUser(
+      id: json['id'].toString(),
+      email: json['email'],
+      name: json['name'] ?? json['full_name'] ?? '',
+      phone: json['phone'],
+      role: json['role'] ?? 'user',
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
+    );
+  }
+}

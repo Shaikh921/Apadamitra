@@ -94,6 +94,7 @@ app.*.map.json
 # Uncomment if you want to hide Supabase credentials
 # lib/supabase/supabase_config.dart
 lib/gemini/gemini_config.dart
+# lib/config/website_config.dart (uncomment if you want to hide website URL)
 .env
 *.env
 key.properties

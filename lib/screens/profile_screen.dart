@@ -4,6 +4,7 @@ import 'package:riverwise/screens/auth_screen.dart';
 import 'package:riverwise/screens/admin/admin_dashboard_screen.dart';
 import 'package:riverwise/main.dart';
 import 'package:riverwise/providers/language_provider.dart';
+import 'package:riverwise/utils/database_helper.dart';
 import 'package:geolocator/geolocator.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _authService = AuthService();
   String _locationStatus = 'Not enabled';
+  bool _isLoadingData = false;
 
   @override
   void initState() {
@@ -64,6 +66,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _loadSampleData() async {
+    setState(() => _isLoadingData = true);
+    
+    try {
+      await DatabaseHelper.seedAllSampleData();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Sample data loaded successfully!\n3 Dams and 2 Alerts added.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading data: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      setState(() => _isLoadingData = false);
     }
   }
 

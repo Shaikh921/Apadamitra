@@ -32,12 +32,28 @@ class _DamInfoScreenState extends State<DamInfoScreen> {
 
   Future<void> _loadStates() async {
     setState(() => _isLoading = true);
-    await _damService.initialize();
-    final states = await _damService.getStates();
-    setState(() {
-      _states = states;
-      _isLoading = false;
-    });
+    try {
+      await _damService.initialize();
+      final states = await _damService.getStates();
+      setState(() {
+        _states = states;
+        _isLoading = false;
+      });
+      
+      // Show helpful message if no data
+      if (states.isEmpty && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No dam data available yet. Admin will add dams soon.'),
+            duration: Duration(seconds: 3),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      print('Error loading states: $e');
+    }
   }
 
   Future<void> _onStateChanged(String? state) async {

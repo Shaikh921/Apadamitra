@@ -23,12 +23,27 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
   Future<void> _loadAlerts() async {
     setState(() => _isLoading = true);
-    await _alertService.initialize();
-    final alerts = await _alertService.getActiveAlerts();
-    setState(() {
-      _alerts = alerts;
-      _isLoading = false;
-    });
+    try {
+      await _alertService.initialize();
+      final alerts = await _alertService.getActiveAlerts();
+      setState(() {
+        _alerts = alerts;
+        _isLoading = false;
+      });
+      
+      // No need to show message if empty - the UI already handles it nicely
+    } catch (e) {
+      setState(() => _isLoading = false);
+      print('Error loading alerts: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading alerts: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override

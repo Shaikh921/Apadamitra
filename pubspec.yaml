@@ -25,6 +25,8 @@ dependencies:
   http: ^1.2.1
   flutter_local_notifications: ^19.0.0
   google_generative_ai: ^0.4.6
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
   url_launcher: ^6.0.0
   fl_chart: 0.68.0
 

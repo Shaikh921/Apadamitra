@@ -15,7 +15,7 @@ class GeminiClient {
 
     // Use the correct model name for v1beta API
     _model = GenerativeModel(
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       apiKey: geminiApiKey,
       generationConfig: GenerationConfig(
         temperature: 0.7,

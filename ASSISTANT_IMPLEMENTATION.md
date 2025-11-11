@@ -3,7 +3,7 @@
 ## ✅ What Has Been Implemented
 
 ### 1. **Gemini AI Integration**
-- ✅ Replaced OpenAI with Google Gemini AI (gemini-1.5-flash model)
+- ✅ Replaced OpenAI with Google Gemini AI (gemini-2.5-flash model)
 - ✅ Created `lib/gemini/gemini_config.dart` with full configuration
 - ✅ Added `google_generative_ai` package to dependencies
 - ✅ Implemented chat session management with context awareness

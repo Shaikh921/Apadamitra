@@ -8,6 +8,7 @@ import 'package:riverwise/services/prediction_service.dart';
 import 'package:riverwise/widgets/iot_data_card.dart';
 import 'package:riverwise/widgets/alert_card.dart';
 import 'package:riverwise/widgets/risk_indicator.dart';
+import 'package:riverwise/screens/river_flow_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -155,7 +156,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               iconColor: const Color(0xFF3498DB),
                               title: 'Water Flow',
                               subtitle: 'Rates and direction\nof river flow',
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const RiverFlowScreen(),
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),

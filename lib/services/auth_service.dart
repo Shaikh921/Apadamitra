@@ -1,5 +1,7 @@
 import 'package:riverwise/models/user_model.dart';
 import 'package:riverwise/supabase/supabase_config.dart';
+import 'package:riverwise/services/sso_service.dart';
+import 'package:riverwise/services/backend_manager.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
@@ -13,17 +15,69 @@ class AuthService {
   bool get isAuthenticated => _currentUser != null;
 
   Future<void> initialize() async {
-    final session = SupabaseConfig.auth.currentSession;
-    if (session != null) {
-      await _loadCurrentUser(session.user.id);
+    // Try to auto-login from website first
+    try {
+      final websiteAutoLogin = await SSOService.autoLoginFromWebsite();
+      if (websiteAutoLogin) {
+        print('Auto-logged in from website');
+        return;
+      }
+    } catch (e) {
+      print('Website auto-login failed: $e');
+    }
+
+    // Fallback to Supabase session
+    try {
+      final session = SupabaseConfig.auth.currentSession;
+      if (session != null) {
+        await _loadCurrentUser(session.user.id);
+      }
+    } catch (e) {
+      print('Supabase session check failed: $e');
     }
   }
 
   Future<UserModel> signIn(String email, String password) async {
+    // PRIORITY 1: Try website backend first
+    try {
+      print('Attempting login via website backend...');
+      final websiteSuccess = await SSOService.attemptWebsiteSSO(email, password).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          print('Website backend timeout');
+          return false;
+        },
+      );
+      
+      if (websiteSuccess) {
+        print('Website login successful!');
+        // Create a temporary user model from website data
+        final now = DateTime.now();
+        _currentUser = UserModel(
+          id: 'website_user',
+          email: email,
+          name: email.split('@')[0],
+          role: UserRole.user,
+          createdAt: now,
+          updatedAt: now,
+        );
+        return _currentUser!;
+      }
+    } catch (e) {
+      print('Website login failed: $e');
+      print('Falling back to Supabase...');
+    }
+
+    // PRIORITY 2: Fallback to Supabase (with timeout)
     try {
       final response = await SupabaseConfig.auth.signInWithPassword(
         email: email,
         password: password,
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Connection timeout - Please check your internet connection');
+        },
       );
 
       if (response.user == null) {
@@ -35,11 +89,31 @@ class AuthService {
     } on AuthException catch (e) {
       throw Exception('Authentication failed: ${e.message}');
     } catch (e) {
+      // If both backends fail, show a clear error message
+      if (e.toString().contains('SocketFailed') || e.toString().contains('host lookup')) {
+        throw Exception('Cannot connect to server. Please check your internet connection and try again.');
+      }
       throw Exception('Sign in failed: ${e.toString()}');
     }
   }
 
   Future<UserModel> signUp(String email, String password, String name) async {
+    // PRIORITY 1: Try website backend registration first
+    try {
+      print('Attempting registration via website backend...');
+      final websiteSuccess = await _registerOnWebsite(email, password, name);
+      
+      if (websiteSuccess) {
+        print('Website registration successful!');
+        // Now try to login
+        return await signIn(email, password);
+      }
+    } catch (e) {
+      print('Website registration failed: $e');
+      print('Falling back to Supabase registration...');
+    }
+
+    // PRIORITY 2: Fallback to Supabase
     try {
       // Sign up with user metadata
       final response = await SupabaseConfig.auth.signUp(
@@ -99,8 +173,44 @@ class AuthService {
     }
   }
 
+  Future<bool> _registerOnWebsite(String email, String password, String name) async {
+    try {
+      final response = await BackendManager.apiCall(
+        endpoint: '/users/register',
+        method: 'POST',
+        data: {
+          'email': email,
+          'password': password,
+          'name': name,
+          'mobile': '',
+          'place': '',
+          'state': '',
+          'role': 'user',
+        },
+      );
+      
+      return response['success'] == true;
+    } catch (e) {
+      print('Website registration error: $e');
+      return false;
+    }
+  }
+
   Future<void> signOut() async {
-    await SupabaseConfig.auth.signOut();
+    // Logout from website
+    try {
+      await SSOService.logout();
+    } catch (e) {
+      print('Website logout failed: $e');
+    }
+    
+    // Logout from Supabase
+    try {
+      await SupabaseConfig.auth.signOut();
+    } catch (e) {
+      print('Supabase logout failed: $e');
+    }
+    
     _currentUser = null;
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:riverwise/services/auth_service.dart';
 import 'package:riverwise/screens/main_navigation_screen.dart';
+import 'package:riverwise/utils/connectivity_checker.dart';
 import 'package:geolocator/geolocator.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _isSignUp = false;
   bool _isLoading = false;
   String? _errorMessage;
+  bool _checkingConnection = false;
 
   Future<void> _requestLocationPermission() async {
     final permission = await Geolocator.checkPermission();
@@ -32,6 +34,60 @@ class _AuthScreenState extends State<AuthScreen> {
     _passwordController.dispose();
     _nameController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkConnectivity() async {
+    setState(() => _checkingConnection = true);
+    
+    final status = await ConnectivityChecker.getConnectivityStatus(
+      supabaseUrl: 'https://dgepxgnrviugwnxrrsxl.supabase.co',
+      websiteUrl: 'https://river-water-management-and-life-safety.onrender.com',
+    );
+    
+    setState(() => _checkingConnection = false);
+    
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Connection Status'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildStatusRow('Internet', status['has_internet']),
+              _buildStatusRow('Supabase', status['can_reach_supabase']),
+              _buildStatusRow('Website Backend', status['can_reach_website']),
+              const SizedBox(height: 16),
+              Text(status['message'], style: const TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Widget _buildStatusRow(String label, bool status) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(
+            status ? Icons.check_circle : Icons.cancel,
+            color: status ? Colors.green : Colors.red,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Text(label),
+        ],
+      ),
+    );
   }
 
   Future<void> _handleAuth() async {
@@ -68,7 +124,14 @@ class _AuthScreenState extends State<AuthScreen> {
     } catch (e) {
       print('Auth Error: $e'); // Debug log
       setState(() {
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        String errorMsg = e.toString().replaceAll('Exception: ', '');
+        
+        // Make error message more user-friendly
+        if (errorMsg.contains('SocketFailed') || errorMsg.contains('host lookup')) {
+          errorMsg = 'Cannot connect to server.\n\nPlease check:\n• Internet connection\n• WiFi/Mobile Data is ON\n• Try disabling VPN';
+        }
+        
+        _errorMessage = errorMsg;
         _isLoading = false;
       });
     }

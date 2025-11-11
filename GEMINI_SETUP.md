@@ -48,7 +48,7 @@ The assistant responds in 9 Indian languages:
 
 ## Model Configuration
 
-The app uses **Gemini 1.5 Flash** with the following settings:
+The app uses **Gemini 2.5 Flash** with the following settings:
 - **Temperature**: 0.7 (balanced creativity and accuracy)
 - **Max Output Tokens**: 1024 (detailed responses)
 - **Safety Settings**: Medium threshold for all categories

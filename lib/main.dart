@@ -14,6 +14,7 @@ import 'package:riverwise/providers/language_provider.dart';
 import 'package:riverwise/l10n/app_localizations.dart';
 import 'package:riverwise/screens/auth_screen.dart';
 import 'package:riverwise/screens/main_navigation_screen.dart';
+import 'package:riverwise/utils/database_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +37,9 @@ void main() async {
     PredictionService().initialize(),
     NotificationService().initialize(),
   ]);
+  
+  // Database will be populated by admin through admin panel
+  // Regular users will automatically see the data when they open Dam/Alert screens
   
   runApp(MyApp(isAuthenticated: authService.isAuthenticated));
 }
