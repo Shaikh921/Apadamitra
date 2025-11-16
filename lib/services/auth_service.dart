@@ -1,7 +1,7 @@
-import 'package:riverwise/models/user_model.dart';
-import 'package:riverwise/supabase/supabase_config.dart';
-import 'package:riverwise/services/sso_service.dart';
-import 'package:riverwise/services/backend_manager.dart';
+import 'package:Apadamitra/models/user_model.dart';
+import 'package:Apadamitra/supabase/supabase_config.dart';
+import 'package:Apadamitra/services/sso_service.dart';
+import 'package:Apadamitra/services/backend_manager.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
@@ -38,19 +38,32 @@ class AuthService {
   }
 
   Future<UserModel> signIn(String email, String password) async {
+    print('🔐 Starting login for: $email');
+    
     // PRIORITY 1: Try website backend first
     try {
-      print('Attempting login via website backend...');
+      print('📡 Attempting login via website backend...');
       final websiteSuccess = await SSOService.attemptWebsiteSSO(email, password).timeout(
-        const Duration(seconds: 10),
+        const Duration(seconds: 20),
         onTimeout: () {
-          print('Website backend timeout');
+          print('⏱️ Website backend timeout');
           return false;
         },
       );
       
       if (websiteSuccess) {
-        print('Website login successful!');
+        print('✅ Website login successful!');
+        // Load user from Supabase (SSO should have created/synced the user)
+        try {
+          final session = SupabaseConfig.auth.currentSession;
+          if (session != null) {
+            await _loadCurrentUser(session.user.id);
+            return _currentUser!;
+          }
+        } catch (e) {
+          print('⚠️ Could not load user from Supabase after website login: $e');
+        }
+        
         // Create a temporary user model from website data
         final now = DateTime.now();
         _currentUser = UserModel(
@@ -64,12 +77,13 @@ class AuthService {
         return _currentUser!;
       }
     } catch (e) {
-      print('Website login failed: $e');
-      print('Falling back to Supabase...');
+      print('❌ Website login failed: $e');
+      print('🔄 Falling back to Supabase...');
     }
 
     // PRIORITY 2: Fallback to Supabase (with timeout)
     try {
+      print('📡 Attempting Supabase login...');
       final response = await SupabaseConfig.auth.signInWithPassword(
         email: email,
         password: password,
@@ -81,17 +95,29 @@ class AuthService {
       );
 
       if (response.user == null) {
-        throw Exception('Sign in failed');
+        throw Exception('Sign in failed - no user returned');
       }
 
+      print('✅ Supabase login successful!');
       await _loadCurrentUser(response.user!.id);
       return _currentUser!;
     } on AuthException catch (e) {
+      print('❌ Supabase auth error: ${e.message}');
+      // Check if it's an invalid credentials error
+      if (e.message.toLowerCase().contains('invalid') || 
+          e.message.toLowerCase().contains('credentials') ||
+          e.message.toLowerCase().contains('password')) {
+        throw Exception('Invalid email or password. Please check your credentials and try again.');
+      }
       throw Exception('Authentication failed: ${e.message}');
     } catch (e) {
+      print('❌ Supabase login error: $e');
       // If both backends fail, show a clear error message
       if (e.toString().contains('SocketFailed') || e.toString().contains('host lookup')) {
         throw Exception('Cannot connect to server. Please check your internet connection and try again.');
+      }
+      if (e.toString().contains('timeout')) {
+        throw Exception('Connection timeout. Please check your internet connection and try again.');
       }
       throw Exception('Sign in failed: ${e.toString()}');
     }

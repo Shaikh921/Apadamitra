@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:riverwise/screens/dashboard_screen.dart';
-import 'package:riverwise/screens/dam_info_screen.dart';
-import 'package:riverwise/screens/alerts_screen.dart';
-import 'package:riverwise/screens/chatbot_screen.dart';
-import 'package:riverwise/screens/profile_screen.dart';
+import 'package:Apadamitra/screens/dashboard_screen.dart';
+import 'package:Apadamitra/screens/dam_info_screen.dart';
+import 'package:Apadamitra/screens/alerts_screen.dart';
+import 'package:Apadamitra/screens/chatbot_screen.dart';
+import 'package:Apadamitra/screens/profile_screen.dart';
+import 'package:Apadamitra/l10n/app_localizations.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -27,6 +28,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: _screens[_currentIndex],
@@ -44,27 +46,27 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             NavigationDestination(
               icon: Icon(Icons.dashboard_outlined, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
               selectedIcon: Icon(Icons.dashboard, color: theme.colorScheme.primary),
-              label: 'Dashboard',
+              label: l10n.translate('dashboard'),
             ),
             NavigationDestination(
               icon: Icon(Icons.water_outlined, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
               selectedIcon: Icon(Icons.water, color: theme.colorScheme.primary),
-              label: 'Dams',
+              label: l10n.translate('dams'),
             ),
             NavigationDestination(
               icon: Icon(Icons.support_agent, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
               selectedIcon: Icon(Icons.support_agent, color: theme.colorScheme.primary),
-              label: 'Assistant',
+              label: l10n.translate('assistant'),
             ),
             NavigationDestination(
               icon: Icon(Icons.notifications_outlined, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
               selectedIcon: Icon(Icons.notifications, color: theme.colorScheme.primary),
-              label: 'Alerts',
+              label: l10n.translate('alerts'),
             ),
             NavigationDestination(
               icon: Icon(Icons.person_outline, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
               selectedIcon: Icon(Icons.person, color: theme.colorScheme.primary),
-              label: 'Profile',
+              label: l10n.translate('profile'),
             ),
           ],
         ),

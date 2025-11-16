@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
-import 'package:riverwise/services/backend_manager.dart';
-import 'package:riverwise/supabase/supabase_config.dart';
+import 'package:Apadamitra/services/backend_manager.dart';
+import 'package:Apadamitra/supabase/supabase_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service for syncing user location between app and website

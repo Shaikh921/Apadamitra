@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:riverwise/supabase/supabase_config.dart';
-import 'package:riverwise/config/website_config.dart';
+import 'package:Apadamitra/supabase/supabase_config.dart';
+import 'package:Apadamitra/config/website_config.dart';
 
 /// Backend Manager that handles primary website backend and fallback to Supabase
 class BackendManager {

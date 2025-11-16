@@ -1,5 +1,5 @@
-import 'package:riverwise/models/iot_data_model.dart';
-import 'package:riverwise/supabase/supabase_config.dart';
+import 'package:Apadamitra/models/iot_data_model.dart';
+import 'package:Apadamitra/supabase/supabase_config.dart';
 
 class IoTDataService {
   static final IoTDataService _instance = IoTDataService._internal();

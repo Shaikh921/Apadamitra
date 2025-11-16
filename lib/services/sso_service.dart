@@ -1,5 +1,5 @@
-import 'package:riverwise/services/backend_manager.dart';
-import 'package:riverwise/supabase/supabase_config.dart';
+import 'package:Apadamitra/services/backend_manager.dart';
+import 'package:Apadamitra/supabase/supabase_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Single Sign-On service for website and app integration
@@ -10,34 +10,61 @@ class SSOService {
   /// Check if user is logged in to website and auto-login to app
   static Future<bool> attemptWebsiteSSO(String email, String password) async {
     try {
+      print('🌐 Attempting website authentication...');
       // First, try to authenticate with website
       final websiteAuth = await _authenticateWithWebsite(email, password);
       
+      print('📦 Website auth response: ${websiteAuth['success']}');
+      
       if (websiteAuth['success'] == true) {
+        print('✅ Website authentication successful');
         // Store website auth data
         await _storeWebsiteAuth(websiteAuth);
         
         // Check if user exists in Supabase
+        print('🔍 Checking if user exists in Supabase...');
         final supabaseUser = await _getSupabaseUser(email);
         
         if (supabaseUser != null) {
+          print('👤 User exists in Supabase, signing in...');
           // User exists, sign in to Supabase
-          await SupabaseConfig.auth.signInWithPassword(
-            email: email,
-            password: password,
-          );
+          try {
+            await SupabaseConfig.auth.signInWithPassword(
+              email: email,
+              password: password,
+            );
+            print('✅ Supabase sign-in successful');
+          } catch (e) {
+            print('⚠️ Supabase sign-in failed (user exists but wrong password): $e');
+            // User exists but password might be different
+            // This is okay, we'll use website auth
+          }
         } else {
+          print('➕ User does not exist in Supabase, creating...');
           // Create user in Supabase
-          await _createSupabaseUser(email, password, websiteAuth['user']);
+          try {
+            await _createSupabaseUser(email, password, websiteAuth['user'] ?? {});
+            print('✅ User created in Supabase');
+          } catch (e) {
+            print('⚠️ Failed to create user in Supabase: $e');
+            // This is okay, we can still use website auth
+          }
         }
         
         // Sync user data
-        await BackendManager.syncUserData();
+        try {
+          await BackendManager.syncUserData();
+          print('✅ User data synced');
+        } catch (e) {
+          print('⚠️ Failed to sync user data: $e');
+        }
+        
         return true;
       }
+      print('❌ Website authentication failed');
       return false;
     } catch (e) {
-      print('SSO authentication failed: $e');
+      print('❌ SSO authentication failed: $e');
       return false;
     }
   }
@@ -88,25 +115,40 @@ class SSOService {
     String password,
     Map<String, dynamic> websiteUser,
   ) async {
-    // Sign up user in Supabase
-    final authResponse = await SupabaseConfig.auth.signUp(
-      email: email,
-      password: password,
-    );
-    
-    if (authResponse.user != null) {
-      // Create profile with website data
-      await SupabaseService.insert('profiles', {
-        'id': authResponse.user!.id,
-        'email': email,
-        'full_name': websiteUser['name'] ?? '',
-        'phone': websiteUser['phone'] ?? '',
-        'role': websiteUser['role'] ?? 'user',
-        'website_user_id': websiteUser['id'],
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
-        'sync_status': 'synced',
-      });
+    try {
+      print('📝 Creating Supabase user for: $email');
+      // Sign up user in Supabase
+      final authResponse = await SupabaseConfig.auth.signUp(
+        email: email,
+        password: password,
+        data: {
+          'name': websiteUser['name'] ?? email.split('@')[0],
+        },
+      );
+      
+      if (authResponse.user != null) {
+        print('✅ Supabase user created with ID: ${authResponse.user!.id}');
+        
+        // Wait for trigger to create profile
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // Update profile with website data if needed
+        try {
+          await SupabaseConfig.client.from('users').update({
+            'name': websiteUser['name'] ?? email.split('@')[0],
+            'role': websiteUser['role'] ?? 'user',
+            'updated_at': DateTime.now().toIso8601String(),
+          }).eq('id', authResponse.user!.id);
+          print('✅ Profile updated with website data');
+        } catch (e) {
+          print('⚠️ Could not update profile: $e');
+        }
+      } else {
+        print('⚠️ No user returned from Supabase signup');
+      }
+    } catch (e) {
+      print('❌ Error creating Supabase user: $e');
+      throw e;
     }
   }
   

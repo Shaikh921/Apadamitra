@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:riverwise/models/alert_model.dart';
+import 'package:Apadamitra/models/alert_model.dart';
 import 'package:intl/intl.dart';
 
 class AlertCard extends StatelessWidget {

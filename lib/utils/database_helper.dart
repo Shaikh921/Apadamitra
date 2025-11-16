@@ -1,4 +1,4 @@
-import 'package:riverwise/supabase/supabase_config.dart';
+import 'package:Apadamitra/supabase/supabase_config.dart';
 
 /// Database helper for checking and seeding data
 class DatabaseHelper {

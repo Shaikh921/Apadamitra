@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:riverwise/models/iot_data_model.dart';
-import 'package:riverwise/models/prediction_model.dart';
+import 'package:Apadamitra/models/iot_data_model.dart';
+import 'package:Apadamitra/models/prediction_model.dart';
 import 'package:intl/intl.dart';
 
 class IoTDataCard extends StatelessWidget {

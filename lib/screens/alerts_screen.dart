@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:riverwise/models/alert_model.dart';
-import 'package:riverwise/services/alert_service.dart';
-import 'package:riverwise/widgets/alert_card.dart';
+import 'package:Apadamitra/models/alert_model.dart';
+import 'package:Apadamitra/services/alert_service.dart';
+import 'package:Apadamitra/widgets/alert_card.dart';
 
 class AlertsScreen extends StatefulWidget {
   const AlertsScreen({super.key});

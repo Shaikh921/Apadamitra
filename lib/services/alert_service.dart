@@ -1,5 +1,5 @@
-import 'package:riverwise/models/alert_model.dart';
-import 'package:riverwise/supabase/supabase_config.dart';
+import 'package:Apadamitra/models/alert_model.dart';
+import 'package:Apadamitra/supabase/supabase_config.dart';
 
 class AlertService {
   static final AlertService _instance = AlertService._internal();

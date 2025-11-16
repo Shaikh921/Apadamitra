@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:riverwise/gemini/gemini_config.dart';
+import 'package:Apadamitra/gemini/gemini_config.dart';
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});

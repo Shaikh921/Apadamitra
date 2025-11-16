@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:riverwise/services/river_flow_service.dart';
-import 'package:riverwise/models/river_flow_model.dart';
+import 'package:Apadamitra/services/river_flow_service.dart';
+import 'package:Apadamitra/models/river_flow_model.dart';
 
 class RiverFlowScreen extends StatefulWidget {
   const RiverFlowScreen({super.key});

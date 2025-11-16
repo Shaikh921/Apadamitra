@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:riverwise/services/auth_service.dart';
-import 'package:riverwise/services/dam_service.dart';
-import 'package:riverwise/services/alert_service.dart';
-import 'package:riverwise/screens/admin/admin_dams_screen.dart';
-import 'package:riverwise/screens/admin/admin_alerts_screen.dart';
+import 'package:Apadamitra/services/auth_service.dart';
+import 'package:Apadamitra/services/dam_service.dart';
+import 'package:Apadamitra/services/alert_service.dart';
+import 'package:Apadamitra/screens/admin/admin_dams_screen.dart';
+import 'package:Apadamitra/screens/admin/admin_alerts_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:riverwise/services/auth_service.dart';
-import 'package:riverwise/screens/main_navigation_screen.dart';
-import 'package:riverwise/utils/connectivity_checker.dart';
+import 'package:Apadamitra/services/auth_service.dart';
+import 'package:Apadamitra/screens/main_navigation_screen.dart';
+import 'package:Apadamitra/utils/connectivity_checker.dart';
 import 'package:geolocator/geolocator.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -151,7 +151,15 @@ class _AuthScreenState extends State<AuthScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 40),
-              Icon(Icons.water_drop, size: 80, color: theme.colorScheme.primary),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(
+                  'assets/icons/dreamflow_icon.jpg',
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                ),
+              ),
               const SizedBox(height: 16),
               Text('Apadamitra', style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary), textAlign: TextAlign.center),
               const SizedBox(height: 8),

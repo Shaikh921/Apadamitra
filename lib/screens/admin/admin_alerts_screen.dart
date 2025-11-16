@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:riverwise/models/alert_model.dart';
-import 'package:riverwise/services/alert_service.dart';
-import 'package:riverwise/services/notification_service.dart';
-import 'package:riverwise/supabase/supabase_config.dart';
+import 'package:Apadamitra/models/alert_model.dart';
+import 'package:Apadamitra/services/alert_service.dart';
+import 'package:Apadamitra/services/notification_service.dart';
+import 'package:Apadamitra/supabase/supabase_config.dart';
 
 class AdminAlertsScreen extends StatefulWidget {
   const AdminAlertsScreen({super.key});

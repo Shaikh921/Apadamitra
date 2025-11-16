@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:riverwise/services/auth_service.dart';
-import 'package:riverwise/screens/auth_screen.dart';
-import 'package:riverwise/screens/admin/admin_dashboard_screen.dart';
-import 'package:riverwise/main.dart';
-import 'package:riverwise/providers/language_provider.dart';
-import 'package:riverwise/utils/database_helper.dart';
+import 'package:Apadamitra/services/auth_service.dart';
+import 'package:Apadamitra/screens/auth_screen.dart';
+import 'package:Apadamitra/screens/admin/admin_dashboard_screen.dart';
+import 'package:Apadamitra/main.dart';
+import 'package:Apadamitra/providers/language_provider.dart';
+import 'package:Apadamitra/utils/database_helper.dart';
+import 'package:Apadamitra/l10n/app_localizations.dart';
 import 'package:geolocator/geolocator.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -113,13 +114,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final user = _authService.currentUser;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
-        title: Text('Profile', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
+        title: Text(l10n.translate('profile'), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -197,11 +199,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildSection(
               theme,
               isDark,
-              'Settings',
+              l10n.translate('settings'),
               [
-                _buildDarkModeToggle(theme),
-                _buildLanguageSelector(theme),
-                _buildSettingTile(theme, Icons.notifications_outlined, 'Notifications', 'Enabled', () {}),
+                _buildDarkModeToggle(theme, l10n),
+                _buildLanguageSelector(theme, l10n),
+                _buildSettingTile(theme, Icons.notifications_outlined, l10n.translate('notifications'), 'Enabled', () {}),
                 _buildSettingTile(theme, Icons.location_on_outlined, 'Location', _locationStatus, _requestLocationPermission),
               ],
             ),
@@ -267,7 +269,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildDarkModeToggle(ThemeData theme) {
+  Widget _buildDarkModeToggle(ThemeData theme, AppLocalizations l10n) {
     final themeProvider = MultiProviderScope.themeOf(context);
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
     
@@ -277,7 +279,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: theme.colorScheme.primary, size: 24),
           const SizedBox(width: 16),
-          Expanded(child: Text('Dark Mode', style: theme.textTheme.bodyLarge)),
+          Expanded(child: Text(l10n.translate('dark_mode'), style: theme.textTheme.bodyLarge)),
           Switch(
             value: isDarkMode,
             onChanged: (value) {
@@ -290,7 +292,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildLanguageSelector(ThemeData theme) {
+  Widget _buildLanguageSelector(ThemeData theme, AppLocalizations l10n) {
     final languageProvider = MultiProviderScope.languageOf(context);
     final currentLanguage = languageProvider.locale.languageCode;
     
@@ -302,7 +304,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Icon(Icons.language, color: theme.colorScheme.primary, size: 24),
             const SizedBox(width: 16),
-            Expanded(child: Text('Language', style: theme.textTheme.bodyLarge)),
+            Expanded(child: Text(l10n.translate('language'), style: theme.textTheme.bodyLarge)),
             Text(
               languageProvider.getLanguageName(currentLanguage),
               style: theme.textTheme.bodyMedium?.copyWith(

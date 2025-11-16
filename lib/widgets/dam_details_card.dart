@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:riverwise/models/dam_model.dart';
+import 'package:Apadamitra/models/dam_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DamDetailsCard extends StatelessWidget {

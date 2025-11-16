@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:riverwise/theme.dart';
-import 'package:riverwise/supabase/supabase_config.dart';
-import 'package:riverwise/services/auth_service.dart';
-import 'package:riverwise/services/iot_data_service.dart';
-import 'package:riverwise/services/alert_service.dart';
-import 'package:riverwise/services/dam_service.dart';
-import 'package:riverwise/services/prediction_service.dart';
-import 'package:riverwise/services/notification_service.dart';
-import 'package:riverwise/providers/theme_provider.dart';
-import 'package:riverwise/providers/language_provider.dart';
-import 'package:riverwise/l10n/app_localizations.dart';
-import 'package:riverwise/screens/auth_screen.dart';
-import 'package:riverwise/screens/main_navigation_screen.dart';
-import 'package:riverwise/utils/database_helper.dart';
+import 'package:Apadamitra/theme.dart';
+import 'package:Apadamitra/supabase/supabase_config.dart';
+import 'package:Apadamitra/services/auth_service.dart';
+import 'package:Apadamitra/services/iot_data_service.dart';
+import 'package:Apadamitra/services/alert_service.dart';
+import 'package:Apadamitra/services/dam_service.dart';
+import 'package:Apadamitra/services/prediction_service.dart';
+import 'package:Apadamitra/services/notification_service.dart';
+import 'package:Apadamitra/providers/theme_provider.dart';
+import 'package:Apadamitra/providers/language_provider.dart';
+import 'package:Apadamitra/l10n/app_localizations.dart';
+import 'package:Apadamitra/screens/auth_screen.dart';
+import 'package:Apadamitra/screens/main_navigation_screen.dart';
+import 'package:Apadamitra/utils/database_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,6 +63,7 @@ class _MyAppState extends State<MyApp> {
       listenable: Listenable.merge([_themeProvider, _languageProvider]),
       builder: (context, _) {
         return MaterialApp(
+          key: ValueKey(_languageProvider.locale.languageCode),
           title: 'Apadamitra - Flood Monitoring',
           debugShowCheckedModeBanner: false,
           theme: lightTheme,
@@ -127,5 +128,8 @@ class MultiProviderScope extends InheritedWidget {
   }
 
   @override
-  bool updateShouldNotify(MultiProviderScope oldWidget) => false;
+  bool updateShouldNotify(MultiProviderScope oldWidget) {
+    return themeProvider != oldWidget.themeProvider ||
+           languageProvider != oldWidget.languageProvider;
+  }
 }

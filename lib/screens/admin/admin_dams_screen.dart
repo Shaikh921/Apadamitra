@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:riverwise/models/dam_model.dart';
-import 'package:riverwise/services/dam_service.dart';
+import 'package:Apadamitra/models/dam_model.dart';
+import 'package:Apadamitra/services/dam_service.dart';
 
 class AdminDamsScreen extends StatefulWidget {
   const AdminDamsScreen({super.key});

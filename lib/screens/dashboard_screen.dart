@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:riverwise/models/iot_data_model.dart';
-import 'package:riverwise/models/alert_model.dart';
-import 'package:riverwise/models/prediction_model.dart';
-import 'package:riverwise/services/iot_data_service.dart';
-import 'package:riverwise/services/alert_service.dart';
-import 'package:riverwise/services/prediction_service.dart';
-import 'package:riverwise/widgets/iot_data_card.dart';
-import 'package:riverwise/widgets/alert_card.dart';
-import 'package:riverwise/widgets/risk_indicator.dart';
-import 'package:riverwise/screens/river_flow_screen.dart';
+import 'package:Apadamitra/models/iot_data_model.dart';
+import 'package:Apadamitra/models/alert_model.dart';
+import 'package:Apadamitra/models/prediction_model.dart';
+import 'package:Apadamitra/services/iot_data_service.dart';
+import 'package:Apadamitra/services/alert_service.dart';
+import 'package:Apadamitra/services/prediction_service.dart';
+import 'package:Apadamitra/widgets/iot_data_card.dart';
+import 'package:Apadamitra/widgets/alert_card.dart';
+import 'package:Apadamitra/widgets/risk_indicator.dart';
+import 'package:Apadamitra/screens/river_flow_screen.dart';
+import 'package:Apadamitra/l10n/app_localizations.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -58,6 +59,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: Container(
@@ -133,15 +135,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             _buildDashboardCard(
                               icon: Icons.water_drop,
                               iconColor: const Color(0xFF4A9FE5),
-                              title: 'Water Level',
-                              subtitle: 'Current status\nreservoir levels',
+                              title: l10n.translate('water_level'),
+                              subtitle: l10n.translate('current_status'),
                               onTap: () {},
                             ),
                             _buildDashboardCard(
                               icon: Icons.bar_chart,
                               iconColor: const Color(0xFF5CB85C),
-                              title: 'Water Usage',
-                              subtitle: 'Statistics on water\nconsumption',
+                              title: l10n.translate('water_usage'),
+                              subtitle: l10n.translate('statistics'),
                               onTap: () {},
                             ),
                             _buildDashboardCard(
@@ -154,8 +156,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             _buildDashboardCard(
                               icon: Icons.waves,
                               iconColor: const Color(0xFF3498DB),
-                              title: 'Water Flow',
-                              subtitle: 'Rates and direction\nof river flow',
+                              title: l10n.translate('water_flow'),
+                              subtitle: l10n.translate('rates_direction'),
                               onTap: () {
                                 Navigator.push(
                                   context,

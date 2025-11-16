@@ -1,4 +1,4 @@
-name: riverwise
+name: Apadamitra
 description: "Apadamitra is a vital multi-platform flood monitoring and safety system, integrating real-time IoT river data, AI-driven flood predictions, and multilingual citizen alerts to keep communities safe and informed."
 publish_to: "none"
 version: 1.0.0
@@ -38,6 +38,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icons/dreamflow_icon.jpg
 
 flutter_launcher_icons:
   android: true

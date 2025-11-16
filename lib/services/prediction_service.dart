@@ -1,5 +1,5 @@
-import 'package:riverwise/models/prediction_model.dart';
-import 'package:riverwise/supabase/supabase_config.dart';
+import 'package:Apadamitra/models/prediction_model.dart';
+import 'package:Apadamitra/supabase/supabase_config.dart';
 
 class PredictionService {
   static final PredictionService _instance = PredictionService._internal();
